@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Registrasi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .required {
+            color: red;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .result.show {
+            display: block;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Registrasi API</h1>
+        
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="nama_lengkap">Nama Lengkap <span class="required">*</span></label>
+                <input type="text" id="nama_lengkap" name="nama_lengkap" required>
+            </div>
+
+            <div class="form-group">
+                <label for="nim_nip">NIM/NIP <span class="required">*</span></label>
+                <input type="text" id="nim_nip" name="nim_nip" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password <span class="required">*</span></label>
+                <input type="password" id="password" name="password" required minlength="6">
+            </div>
+
+            <div class="form-group">
+                <label for="kampus">Kampus/Instansi</label>
+                <input type="text" id="kampus" name="kampus">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email">
+            </div>
+
+            <div class="form-group">
+                <label for="no_telp">No. Telepon</label>
+                <input type="tel" id="no_telp" name="no_telp">
+            </div>
+
+            <button type="submit" id="submitBtn">
+                Daftar Sekarang
+            </button>
+        </form>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost/absensi-logbook-api';
+        const form = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const resultDiv = document.getElementById('result');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Mendaftar...';
+            
+            // Hide previous result
+            resultDiv.classList.remove('show', 'success', 'error');
+            
+            // Get form data
+            const formData = {
+                nama_lengkap: document.getElementById('nama_lengkap').value,
+                nim_nip: document.getElementById('nim_nip').value,
+                password: document.getElementById('password').value,
+                kampus: document.getElementById('kampus').value || null,
+                email: document.getElementById('email').value || null,
+                no_telp: document.getElementById('no_telp').value || null,
+            };
+
+            console.log('Sending data:', formData);
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register.php`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                console.log('Response:', data);
+
+                if (data.success) {
+                    resultDiv.className = 'result success show';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Berhasil!</strong>
+                        <p>${data.message}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    form.reset();
+                } else {
+                    resultDiv.className = 'result error show';
+                    resultDiv.innerHTML = `
+                        <strong>❌ Gagal!</strong>
+                        <p>${data.message}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.className = 'result error show';
+                resultDiv.innerHTML = `
+                    <strong>❌ Error!</strong>
+                    <p>${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Daftar Sekarang';
+            }
+        });
+
+        // Auto-generate test data
+        document.getElementById('nama_lengkap').value = 'User Test ' + Math.floor(Math.random() * 1000);
+        document.getElementById('nim_nip').value = 'TEST' + Math.floor(Math.random() * 10000);
+        document.getElementById('password').value = 'test123';
+        document.getElementById('kampus').value = 'Universitas Test';
+        document.getElementById('email').value = 'test' + Math.floor(Math.random() * 1000) + '@example.com';
+        document.getElementById('no_telp').value = '08123456789';
+    </script>
+</body>
+</html>
